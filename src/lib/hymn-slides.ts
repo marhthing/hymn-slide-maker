@@ -67,11 +67,35 @@ export function fitConfig(numLines: number) {
   return tiers.find((t) => numLines <= t.max)!;
 }
 
+function fitConfigPptx(numLines: number) {
+  const tiers: { max: number; fontPt: number; spacing: number }[] = [
+    { max: 3, fontPt: 44, spacing: 1.15 },
+    { max: 4, fontPt: 40, spacing: 1.14 },
+    { max: 5, fontPt: 36, spacing: 1.13 },
+    { max: 6, fontPt: 32, spacing: 1.12 },
+    { max: 7, fontPt: 30, spacing: 1.11 },
+    { max: 9, fontPt: 26, spacing: 1.1 },
+    { max: 12, fontPt: 22, spacing: 1.08 },
+    { max: 16, fontPt: 18, spacing: 1.06 },
+    { max: 999, fontPt: 16, spacing: 1.05 },
+  ];
+  return tiers.find((t) => numLines <= t.max)!;
+}
+
 export async function downloadPptx(hymn: Hymn) {
   const PptxGenJS = (await import("pptxgenjs")).default;
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE";
   pptx.title = `GHS ${hymn.number} - ${hymn.title}`;
+
+  // PptxGenJS uses inches. For LAYOUT_WIDE this is 13.333 x 7.5.
+  const SLIDE_W = 13.333;
+  const SLIDE_H = 7.5;
+  const MARGIN_X = 0.8;
+  const TITLE_Y = 0.45;
+  const TITLE_H = 0.85;
+  const BODY_Y = 1.45;
+  const BODY_H = SLIDE_H - BODY_Y - 0.6;
 
   const slides = buildSlides(hymn);
   for (const s of slides) {
@@ -82,8 +106,8 @@ export async function downloadPptx(hymn: Hymn) {
     slide.addShape(pptx.ShapeType.rect, {
       x: 0,
       y: 0,
-      w: "100%" as unknown as number,
-      h: "100%" as unknown as number,
+      w: SLIDE_W,
+      h: SLIDE_H,
       fill: {
         type: "solid",
         color: "4EA72E",
@@ -92,37 +116,31 @@ export async function downloadPptx(hymn: Hymn) {
     });
 
     slide.addText(s.title, {
-      x: 0,
-      y: 0.4,
-      w: 10,
-      h: 0.9,
+      x: MARGIN_X,
+      y: TITLE_Y,
+      w: SLIDE_W - MARGIN_X * 2,
+      h: TITLE_H,
       align: "center",
-      fontSize: 36,
+      fontSize: 34,
       bold: true,
       color: "FFFFFF",
-      fontFace: "Aptos Display",
+      // Use a font that is commonly available on Windows/Office.
+      fontFace: "Calibri",
       lineSpacingMultiple: 0.9,
     });
 
-    const paragraphs = s.lines.map((line, i) => ({
-      text: line,
-      options: {
-        align: "center" as const,
-        breakLine: i < s.lines.length - 1,
-      },
-    }));
-
-    const fit = fitConfig(s.lines.length);
-    slide.addText(paragraphs, {
-      x: 0,
-      y: 1.5,
-      w: 10,
-      h: 5.6,
+    const bodyText = s.lines.join("\n");
+    const fit = fitConfigPptx(s.lines.length);
+    slide.addText(bodyText, {
+      x: MARGIN_X,
+      y: BODY_Y,
+      w: SLIDE_W - MARGIN_X * 2,
+      h: BODY_H,
       align: "center",
       fontSize: fit.fontPt,
       color: "FFFFFF",
       bold: true,
-      fontFace: "Aptos",
+      fontFace: "Calibri",
       lineSpacingMultiple: fit.spacing,
       valign: "middle",
       wrap: true,
