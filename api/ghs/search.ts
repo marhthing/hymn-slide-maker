@@ -12,7 +12,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const q = normalizeQuery(req.query.q);
   if (!q) return res.status(400).json({ error: "Missing query parameter `q`." });
 
-  const db = await readDb();
+  const db = await readDb(req);
   const needle = q.toLowerCase();
 
   const results = db.hymns
@@ -28,4 +28,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   setCaching(res, 60 * 10); // 10m (query results)
   return res.status(200).json({ q, count: results.length, results });
 }
-

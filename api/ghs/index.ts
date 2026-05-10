@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
 
-  const db = await readDb();
+  const db = await readDb(req);
   setCaching(res, 60 * 60 * 24); // 24h
 
   return res.status(200).json({
@@ -23,4 +23,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
   });
 }
-

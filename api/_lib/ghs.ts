@@ -1,5 +1,4 @@
-import path from "node:path";
-import fs from "node:fs/promises";
+import type { VercelRequest } from "@vercel/node";
 
 export type Hymn = {
   number: number;
@@ -16,14 +15,21 @@ export type HymnDb = {
 
 let cachedDb: HymnDb | null = null;
 
-function dataPath() {
-  return path.join(process.cwd(), "public", "GHS-1-260.json");
+function baseUrl(req: VercelRequest) {
+  const proto = (req.headers["x-forwarded-proto"] as string | undefined) ?? "https";
+  const host = req.headers.host;
+  if (!host) return `${proto}://localhost`;
+  return `${proto}://${host}`;
 }
 
-export async function readDb(): Promise<HymnDb> {
+export async function readDb(req: VercelRequest): Promise<HymnDb> {
   if (cachedDb) return cachedDb;
-  const raw = await fs.readFile(dataPath(), "utf8");
-  cachedDb = JSON.parse(raw) as HymnDb;
+  const url = `${baseUrl(req)}/GHS-1-260.json`;
+  const response = await fetch(url, { headers: { accept: "application/json" } });
+  if (!response.ok) {
+    throw new Error(`Failed to load dataset (${response.status}) from ${url}`);
+  }
+  cachedDb = (await response.json()) as HymnDb;
   return cachedDb;
 }
 
@@ -45,4 +51,3 @@ export function setCaching(res: { setHeader: (k: string, v: string) => void }, s
   // Cache at the Vercel edge; allow browsers to cache too.
   res.setHeader("Cache-Control", `public, max-age=${seconds}, s-maxage=${seconds}, stale-while-revalidate=86400`);
 }
-

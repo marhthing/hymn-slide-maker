@@ -19,11 +19,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const n = parseNumber(req.query.number);
   if (!n) return res.status(400).json({ error: "Invalid hymn number. Use 1..252." });
 
-  const db = await readDb();
+  const db = await readDb(req);
   const hymn = db.hymns.find((h) => h.number === n);
   if (!hymn) return res.status(404).json({ error: `Hymn #${n} not found.` });
 
   setCaching(res, 60 * 60 * 24); // 24h
   return res.status(200).json(hymn);
 }
-
