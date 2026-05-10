@@ -112,17 +112,18 @@ export async function downloadPptx(hymn: Hymn) {
       },
     }));
 
+    const fit = fitConfig(s.lines.length);
     slide.addText(paragraphs, {
-      x: 0.7,
-      y: 1.4,
-      w: 8.6,
-      h: 5.8,
+      x: 0.5,
+      y: 1.5,
+      w: 9,
+      h: 5.6,
       align: "center",
-      fontSize: 32,
+      fontSize: fit.fontPt,
       color: "0E2841",
       fontFace: "Aptos",
-      lineSpacingMultiple: 2.5,
-      valign: "top",
+      lineSpacingMultiple: fit.spacing,
+      valign: "middle",
       wrap: true,
     });
   }
