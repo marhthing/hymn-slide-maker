@@ -47,6 +47,26 @@ function fileBase(hymn: Hymn) {
   return `GHS_${hymn.number}_${safe}`;
 }
 
+/**
+ * Pick a font size + line-spacing multiplier so N lines fit within
+ * the available body height of a 16:9 slide. Tiers descend from large
+ * (few lines) to small (many lines) so content always fits.
+ */
+export function fitConfig(numLines: number) {
+  const tiers: { max: number; fontPt: number; spacing: number }[] = [
+    { max: 3, fontPt: 40, spacing: 2.4 },
+    { max: 4, fontPt: 36, spacing: 2.2 },
+    { max: 5, fontPt: 32, spacing: 2.0 },
+    { max: 6, fontPt: 30, spacing: 1.9 },
+    { max: 7, fontPt: 28, spacing: 1.8 },
+    { max: 9, fontPt: 24, spacing: 1.6 },
+    { max: 12, fontPt: 20, spacing: 1.4 },
+    { max: 16, fontPt: 17, spacing: 1.3 },
+    { max: 999, fontPt: 14, spacing: 1.2 },
+  ];
+  return tiers.find((t) => numLines <= t.max)!;
+}
+
 export async function downloadPptx(hymn: Hymn) {
   const PptxGenJS = (await import("pptxgenjs")).default;
   const pptx = new PptxGenJS();
