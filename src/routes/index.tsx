@@ -1,14 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Loader2, Download, Music2 } from "lucide-react";
-import {
-  buildSlides,
-  downloadPdf,
-  downloadPptx,
-  type Hymn,
-  type HymnDb,
-  type Slide,
-} from "@/lib/hymn-slides";
+import { buildSlides, downloadPdf, downloadPptx, type Hymn, type Slide } from "@/lib/hymn-slides";
 import { SlidePreview } from "@/components/SlidePreview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +21,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const [db, setDb] = useState<HymnDb | null>(null);
-  const [dbError, setDbError] = useState<string | null>(null);
   const [number, setNumber] = useState("");
   const [hymn, setHymn] = useState<Hymn | null>(null);
   const [slides, setSlides] = useState<Slide[]>([]);
@@ -37,38 +28,31 @@ function Index() {
   const [pptxLoading, setPptxLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
 
-  useEffect(() => {
-    fetch("/GHS-1-260.json")
-      .then((r) => {
-        if (!r.ok) throw new Error("fetch failed");
-        return r.json();
-      })
-      .then((d: HymnDb) => setDb(d))
-      .catch(() =>
-        setDbError(
-          "Could not load hymn data. Make sure GHS-1-260.json is in the same folder."
-        )
-      );
-  }, []);
+  useEffect(() => {}, []);
 
   function handleGenerate(e?: React.FormEvent) {
     e?.preventDefault();
     setError(null);
     setHymn(null);
     setSlides([]);
-    if (!db) return;
     const n = Number(number);
-    if (!Number.isInteger(n) || n < 1 || n > 252) {
-      setError("Please enter a whole number between 1 and 252.");
+    if (!Number.isInteger(n) || n < 1 || n > 260) {
+      setError("Please enter a whole number between 1 and 260.");
       return;
     }
-    const found = db.hymns.find((h) => h.number === n);
-    if (!found) {
-      setError(`Hymn #${n} not found.`);
-      return;
-    }
-    setHymn(found);
-    setSlides(buildSlides(found));
+    fetch(`/api/ghs/by-number?number=${encodeURIComponent(String(n))}`)
+      .then(async (r) => {
+        if (!r.ok) {
+          const text = await r.text().catch(() => "");
+          throw new Error(text || `API request failed (${r.status})`);
+        }
+        return r.json() as Promise<Hymn>;
+      })
+      .then((found) => {
+        setHymn(found);
+        setSlides(buildSlides(found));
+      })
+      .catch(() => setError(`Hymn #${n} not found (or API error).`));
   }
 
   async function handlePptx() {
@@ -115,32 +99,24 @@ function Index() {
               htmlFor="ghs-number"
               className="block text-sm font-medium mb-1"
             >
-              Enter GHS Number (1–252)
+              Enter GHS Number (1–260)
             </label>
             <Input
               id="ghs-number"
               type="number"
               min={1}
-              max={252}
+              max={260}
               inputMode="numeric"
               placeholder="e.g. 16"
               value={number}
               onChange={(e) => setNumber(e.target.value)}
             />
           </div>
-          <Button
-            type="submit"
-            disabled={!db}
-            className="text-white"
-            style={{ backgroundColor: "#156082" }}
-          >
+          <Button type="submit" className="text-white" style={{ backgroundColor: "#156082" }}>
             Generate
           </Button>
         </form>
 
-        {dbError && (
-          <p className="mt-4 text-sm text-destructive">{dbError}</p>
-        )}
         {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
         {hymn && (

@@ -1,4 +1,4 @@
-import { readDb, setCaching, setCors } from "../_lib/ghs.js";
+import { readDb, setCors } from "../_lib/ghs.js";
 import { getProvidedApiKey, isValidApiKey } from "../_lib/api-key.js";
 import { applyRateLimitHeaders, checkRateLimit, getRateLimitContext } from "../_lib/rate-limit.js";
 
@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const { ip } = getRateLimitContext(req);
   const rl = await checkRateLimit({
     key: hasFullAccess ? `key:${providedKey}` : `ip:${ip}`,
-    limit: hasFullAccess ? 520 : 260,
+    limit: hasFullAccess ? 120 : 10,
     windowSeconds: 60,
   });
   applyRateLimitHeaders(res, rl);
@@ -26,15 +26,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const db = await readDb(req);
+    const db = await readDb();
     return res.status(200).json({
       title: db.title,
       total: db.total,
-      range: { min: 1, max: 252 },
+      range: { min: 1, max: 260 },
       endpoints: {
         byNumber: "/api/ghs/by-number?number=16",
         search: "/api/ghs/search?q=...",
-        raw: "/GHS-1-260.json",
       },
     });
   } catch (error) {

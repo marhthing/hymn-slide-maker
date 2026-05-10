@@ -1,29 +1,19 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 let cachedDb = null;
 
-function headerValue(value) {
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const dataFile = path.join(__dirname, "..", "_data", "GHS-1-260.json");
 
-function baseUrl(req) {
-  const proto = headerValue(req.headers["x-forwarded-proto"]) || "https";
-  const host =
-    headerValue(req.headers["x-forwarded-host"]) ||
-    headerValue(req.headers["host"]) ||
-    "127.0.0.1";
-  return `${proto}://${host}`;
-}
-
-export async function readDb(req) {
+export async function readDb() {
   if (cachedDb) return cachedDb;
-  const url = `${baseUrl(req)}/GHS-1-260.json`;
-  const response = await fetch(url, { headers: { accept: "application/json" } });
-  if (!response.ok) {
-    throw new Error(`Failed to load dataset (${response.status}) from ${url}`);
-  }
-  const json = await response.json();
+  const raw = await fs.readFile(dataFile, "utf8");
+  const json = JSON.parse(raw);
   if (!json || typeof json !== "object" || Array.isArray(json)) {
-    throw new Error(`Dataset is not a JSON object from ${url}`);
+    throw new Error("Dataset is not a JSON object");
   }
   cachedDb = json;
   return cachedDb;
@@ -45,4 +35,3 @@ export function setCaching(res, seconds) {
     `public, max-age=${seconds}, s-maxage=${seconds}, stale-while-revalidate=86400`,
   );
 }
-

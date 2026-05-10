@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const db = await readDb(req);
+    const db = await readDb();
     const needle = q.toLowerCase();
     const results = (db.hymns || [])
       .filter((h) => {

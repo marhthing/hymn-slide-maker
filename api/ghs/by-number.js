@@ -5,7 +5,7 @@ import { applyRateLimitHeaders, checkRateLimit, getRateLimitContext } from "../_
 function parseNumber(value) {
   const n = Number(value);
   if (!Number.isInteger(n)) return null;
-  if (n < 1 || n > 252) return null;
+  if (n < 1 || n > 260) return null;
   return n;
 }
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
 
   const n = parseNumber(req.query && (req.query.number ?? req.query.n));
-  if (!n) return res.status(400).json({ error: "Invalid hymn number. Use ?number=1..252." });
+  if (!n) return res.status(400).json({ error: "Invalid hymn number. Use ?number=1..260." });
 
   const providedKey = getProvidedApiKey(req);
   const hasFullAccess = isValidApiKey(providedKey);
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const db = await readDb(req);
+    const db = await readDb();
     const hymn = (db.hymns || []).find((h) => h && h.number === n);
     if (!hymn) return res.status(404).json({ error: `Hymn #${n} not found.` });
 
