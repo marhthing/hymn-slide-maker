@@ -92,14 +92,14 @@ export async function downloadPptx(hymn: Hymn) {
     });
 
     slide.addText(s.title, {
-      x: 0.5,
+      x: 0,
       y: 0.4,
-      w: 9,
+      w: 10,
       h: 0.9,
       align: "center",
       fontSize: 36,
       bold: true,
-      color: "0E2841",
+      color: "FFFFFF",
       fontFace: "Aptos Display",
       lineSpacingMultiple: 0.9,
     });
@@ -114,13 +114,14 @@ export async function downloadPptx(hymn: Hymn) {
 
     const fit = fitConfig(s.lines.length);
     slide.addText(paragraphs, {
-      x: 0.5,
+      x: 0,
       y: 1.5,
-      w: 9,
+      w: 10,
       h: 5.6,
       align: "center",
       fontSize: fit.fontPt,
-      color: "0E2841",
+      color: "FFFFFF",
+      bold: true,
       fontFace: "Aptos",
       lineSpacingMultiple: fit.spacing,
       valign: "middle",
@@ -159,7 +160,7 @@ export async function downloadPdf(hymn: Hymn) {
     // title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(14, 40, 65);
+    doc.setTextColor(255, 255, 255);
     doc.text(s.title, W / 2, 22, { align: "center" });
 
     // body — fit-aware
@@ -167,9 +168,9 @@ export async function downloadPdf(hymn: Hymn) {
     // pt -> mm
     const fontMm = fit.fontPt * 0.3528;
     const lineHeight = fontMm * fit.spacing;
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(fit.fontPt);
-    doc.setTextColor(14, 40, 65);
+    doc.setTextColor(255, 255, 255);
 
     const bodyTop = 32;
     const bodyBottom = H - 10;
