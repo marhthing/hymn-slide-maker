@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({
       error: "Failed to load GHS dataset",
       detail: error instanceof Error ? error.message : String(error),
-      hint: "Check that /GHS-1-260.json is accessible on the deployed site.",
+      hint: "Check that /GHS-1-260.json is accessible on the deployed site (try opening it directly in a browser).",
     });
   }
 }

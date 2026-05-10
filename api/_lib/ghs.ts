@@ -16,9 +16,12 @@ export type HymnDb = {
 let cachedDb: HymnDb | null = null;
 
 function baseUrl(req: VercelRequest) {
-  const proto = (req.headers["x-forwarded-proto"] as string | undefined) ?? "https";
-  const host = req.headers.host;
-  if (!host) return `${proto}://localhost`;
+  const protoHeader = req.headers["x-forwarded-proto"];
+  const proto = (Array.isArray(protoHeader) ? protoHeader[0] : protoHeader) ?? "https";
+
+  const hostHeader = req.headers["x-forwarded-host"] ?? req.headers.host;
+  const host = Array.isArray(hostHeader) ? hostHeader[0] : hostHeader;
+  if (!host) return `${proto}://127.0.0.1`;
   return `${proto}://${host}`;
 }
 
@@ -29,7 +32,11 @@ export async function readDb(req: VercelRequest): Promise<HymnDb> {
   if (!response.ok) {
     throw new Error(`Failed to load dataset (${response.status}) from ${url}`);
   }
-  cachedDb = (await response.json()) as HymnDb;
+  const json = (await response.json()) as unknown;
+  if (!json || typeof json !== "object" || Array.isArray(json)) {
+    throw new Error(`Dataset is not a JSON object from ${url}`);
+  }
+  cachedDb = json as HymnDb;
   return cachedDb;
 }
 
