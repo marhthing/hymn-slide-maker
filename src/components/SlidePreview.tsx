@@ -37,16 +37,16 @@ export function SlidePreview({ slide }: { slide: Slide }) {
         <h3
           className="text-center font-bold leading-tight shrink-0"
           style={{
-            color: "#0E2841",
+            color: "#FFFFFF",
             fontSize: `${titleFontPct}cqh`,
           }}
         >
           {slide.title}
         </h3>
         <div
-          className="flex-1 flex flex-col justify-center items-center text-center w-full overflow-hidden"
+          className="flex-1 flex flex-col justify-center items-center text-center w-full overflow-hidden font-bold"
           style={{
-            color: "#0E2841",
+            color: "#FFFFFF",
             fontFamily: "'Aptos', Calibri, Arial, sans-serif",
             fontSize: `${bodyFontPct}cqh`,
             lineHeight: fit.spacing,
