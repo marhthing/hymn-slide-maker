@@ -21,6 +21,8 @@ export default async function handler(req, res) {
     windowSeconds: 60,
   });
   applyRateLimitHeaders(res, rl);
+  // Don't cache rate-limited responses at the edge, or clients will bypass limits.
+  res.setHeader("Cache-Control", "no-store");
   if (!rl.allowed) {
     res.setHeader("Retry-After", String(rl.resetSeconds));
     return res.status(429).json({ error: "Rate limit exceeded" });
@@ -40,7 +42,6 @@ export default async function handler(req, res) {
       .slice(0, 20)
       .map((h) => ({ number: h.number, title: h.title }));
 
-    setCaching(res, 60 * 10);
     return res.status(200).json({ q, count: results.length, results });
   } catch (error) {
     console.error(error);

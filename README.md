@@ -14,6 +14,8 @@ This repo exposes a small, cache-friendly public API so other apps can fetch GHS
 
 All API endpoints send permissive CORS headers (`Access-Control-Allow-Origin: *`) and are edge-cached.
 
+Note: the GHS API responses are `Cache-Control: no-store` so rate limits can be enforced correctly. The dataset itself is served as a static file at `/GHS-1-260.json` and can be cached by the CDN.
+
 ## Rate limits (recommended)
 
 Two tiers:

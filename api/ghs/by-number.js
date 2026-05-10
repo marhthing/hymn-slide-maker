@@ -28,6 +28,8 @@ export default async function handler(req, res) {
     windowSeconds: 60,
   });
   applyRateLimitHeaders(res, rl);
+  // Don't cache rate-limited responses at the edge, or clients will bypass limits.
+  res.setHeader("Cache-Control", "no-store");
   if (!rl.allowed) {
     res.setHeader("Retry-After", String(rl.resetSeconds));
     return res.status(429).json({ error: "Rate limit exceeded" });
@@ -38,7 +40,6 @@ export default async function handler(req, res) {
     const hymn = (db.hymns || []).find((h) => h && h.number === n);
     if (!hymn) return res.status(404).json({ error: `Hymn #${n} not found.` });
 
-    setCaching(res, 60 * 60 * 24);
     return res.status(200).json(hymn);
   } catch (error) {
     console.error(error);
