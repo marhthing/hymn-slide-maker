@@ -47,6 +47,26 @@ function fileBase(hymn: Hymn) {
   return `GHS_${hymn.number}_${safe}`;
 }
 
+/**
+ * Pick a font size + line-spacing multiplier so N lines fit within
+ * the available body height of a 16:9 slide. Tiers descend from large
+ * (few lines) to small (many lines) so content always fits.
+ */
+export function fitConfig(numLines: number) {
+  const tiers: { max: number; fontPt: number; spacing: number }[] = [
+    { max: 3, fontPt: 40, spacing: 2.4 },
+    { max: 4, fontPt: 36, spacing: 2.2 },
+    { max: 5, fontPt: 32, spacing: 2.0 },
+    { max: 6, fontPt: 30, spacing: 1.9 },
+    { max: 7, fontPt: 28, spacing: 1.8 },
+    { max: 9, fontPt: 24, spacing: 1.6 },
+    { max: 12, fontPt: 20, spacing: 1.4 },
+    { max: 16, fontPt: 17, spacing: 1.3 },
+    { max: 999, fontPt: 14, spacing: 1.2 },
+  ];
+  return tiers.find((t) => numLines <= t.max)!;
+}
+
 export async function downloadPptx(hymn: Hymn) {
   const PptxGenJS = (await import("pptxgenjs")).default;
   const pptx = new PptxGenJS();
@@ -92,17 +112,18 @@ export async function downloadPptx(hymn: Hymn) {
       },
     }));
 
+    const fit = fitConfig(s.lines.length);
     slide.addText(paragraphs, {
-      x: 0.7,
-      y: 1.4,
-      w: 8.6,
-      h: 5.8,
+      x: 0.5,
+      y: 1.5,
+      w: 9,
+      h: 5.6,
       align: "center",
-      fontSize: 32,
+      fontSize: fit.fontPt,
       color: "0E2841",
       fontFace: "Aptos",
-      lineSpacingMultiple: 2.5,
-      valign: "top",
+      lineSpacingMultiple: fit.spacing,
+      valign: "middle",
       wrap: true,
     });
   }
@@ -141,14 +162,22 @@ export async function downloadPdf(hymn: Hymn) {
     doc.setTextColor(14, 40, 65);
     doc.text(s.title, W / 2, 22, { align: "center" });
 
-    // body
+    // body — fit-aware
+    const fit = fitConfig(s.lines.length);
+    // pt -> mm
+    const fontMm = fit.fontPt * 0.3528;
+    const lineHeight = fontMm * fit.spacing;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(15);
-    const lineHeight = 14;
+    doc.setFontSize(fit.fontPt);
+    doc.setTextColor(14, 40, 65);
+
+    const bodyTop = 32;
+    const bodyBottom = H - 10;
+    const bodyH = bodyBottom - bodyTop;
     const totalH = s.lines.length * lineHeight;
-    let y = (H - totalH) / 2 + 18;
+    let y = bodyTop + Math.max(0, (bodyH - totalH) / 2) + fontMm;
     for (const line of s.lines) {
-      doc.text(line, W / 2, y, { align: "center", maxWidth: W - 30 });
+      doc.text(line, W / 2, y, { align: "center", maxWidth: W - 24 });
       y += lineHeight;
     }
   });
