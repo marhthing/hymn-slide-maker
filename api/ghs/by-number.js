@@ -1,4 +1,6 @@
 import { readDb, setCaching, setCors } from "../_lib/ghs.js";
+import { getProvidedApiKey, isValidApiKey } from "../_lib/api-key.js";
+import { applyRateLimitHeaders, checkRateLimit, getRateLimitContext } from "../_lib/rate-limit.js";
 
 function parseNumber(value) {
   const n = Number(value);
@@ -17,6 +19,20 @@ export default async function handler(req, res) {
   const n = parseNumber(req.query && (req.query.number ?? req.query.n));
   if (!n) return res.status(400).json({ error: "Invalid hymn number. Use ?number=1..252." });
 
+  const providedKey = getProvidedApiKey(req);
+  const hasFullAccess = isValidApiKey(providedKey);
+  const { ip } = getRateLimitContext(req);
+  const rl = await checkRateLimit({
+    key: hasFullAccess ? `key:${providedKey}` : `ip:${ip}`,
+    limit: hasFullAccess ? 120 : 10,
+    windowSeconds: 60,
+  });
+  applyRateLimitHeaders(res, rl);
+  if (!rl.allowed) {
+    res.setHeader("Retry-After", String(rl.resetSeconds));
+    return res.status(429).json({ error: "Rate limit exceeded" });
+  }
+
   try {
     const db = await readDb(req);
     const hymn = (db.hymns || []).find((h) => h && h.number === n);
@@ -32,4 +48,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

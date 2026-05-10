@@ -1,4 +1,6 @@
 import { readDb, setCaching, setCors } from "../_lib/ghs.js";
+import { getProvidedApiKey, isValidApiKey } from "../_lib/api-key.js";
+import { applyRateLimitHeaders, checkRateLimit, getRateLimitContext } from "../_lib/rate-limit.js";
 
 export default async function handler(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -6,6 +8,20 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
+
+  const providedKey = getProvidedApiKey(req);
+  const hasFullAccess = isValidApiKey(providedKey);
+  const { ip } = getRateLimitContext(req);
+  const rl = await checkRateLimit({
+    key: hasFullAccess ? `key:${providedKey}` : `ip:${ip}`,
+    limit: hasFullAccess ? 120 : 10,
+    windowSeconds: 60,
+  });
+  applyRateLimitHeaders(res, rl);
+  if (!rl.allowed) {
+    res.setHeader("Retry-After", String(rl.resetSeconds));
+    return res.status(429).json({ error: "Rate limit exceeded" });
+  }
 
   try {
     const db = await readDb(req);
