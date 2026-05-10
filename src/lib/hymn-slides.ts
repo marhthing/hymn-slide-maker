@@ -69,7 +69,6 @@ export async function downloadPptx(hymn: Hymn) {
         color: "4EA72E",
         transparency: 80,
       },
-      line: { type: "none" } as never,
     });
 
     slide.addText(s.title, {
