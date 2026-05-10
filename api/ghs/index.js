@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   const { ip } = getRateLimitContext(req);
   const rl = await checkRateLimit({
     key: hasFullAccess ? `key:${providedKey}` : `ip:${ip}`,
-    limit: hasFullAccess ? 120 : 10,
+    limit: hasFullAccess ? 520 : 260,
     windowSeconds: 60,
   });
   applyRateLimitHeaders(res, rl);
