@@ -14,6 +14,7 @@ export function SlidePreview({ slide }: { slide: Slide }) {
         background:
           "linear-gradient(20deg, rgba(78,167,46,0.25) 16%, rgba(21,96,130,0.55) 85%), #156082",
         fontFamily: "'Aptos Display', Calibri, Arial, sans-serif",
+        containerType: "size",
       }}
     >
       {/* decorative wave top-right */}
