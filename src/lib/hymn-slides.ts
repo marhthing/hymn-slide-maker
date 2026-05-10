@@ -162,14 +162,22 @@ export async function downloadPdf(hymn: Hymn) {
     doc.setTextColor(14, 40, 65);
     doc.text(s.title, W / 2, 22, { align: "center" });
 
-    // body
+    // body — fit-aware
+    const fit = fitConfig(s.lines.length);
+    // pt -> mm
+    const fontMm = fit.fontPt * 0.3528;
+    const lineHeight = fontMm * fit.spacing;
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(15);
-    const lineHeight = 14;
+    doc.setFontSize(fit.fontPt);
+    doc.setTextColor(14, 40, 65);
+
+    const bodyTop = 32;
+    const bodyBottom = H - 10;
+    const bodyH = bodyBottom - bodyTop;
     const totalH = s.lines.length * lineHeight;
-    let y = (H - totalH) / 2 + 18;
+    let y = bodyTop + Math.max(0, (bodyH - totalH) / 2) + fontMm;
     for (const line of s.lines) {
-      doc.text(line, W / 2, y, { align: "center", maxWidth: W - 30 });
+      doc.text(line, W / 2, y, { align: "center", maxWidth: W - 24 });
       y += lineHeight;
     }
   });
