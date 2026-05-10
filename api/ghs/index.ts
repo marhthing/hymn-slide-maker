@@ -9,17 +9,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "OPTIONS") return res.status(204).end();
   if (req.method !== "GET") return res.status(405).json({ error: "Method Not Allowed" });
 
-  const db = await readDb(req);
-  setCaching(res, 60 * 60 * 24); // 24h
+  try {
+    const db = await readDb(req);
+    setCaching(res, 60 * 60 * 24); // 24h
 
-  return res.status(200).json({
-    title: db.title,
-    total: db.total,
-    range: { min: 1, max: 252 },
-    endpoints: {
-      byNumber: "/api/ghs/:number",
-      search: "/api/ghs/search?q=...",
-      raw: "/GHS-1-260.json",
-    },
-  });
+    return res.status(200).json({
+      title: db.title,
+      total: db.total,
+      range: { min: 1, max: 252 },
+      endpoints: {
+        byNumber: "/api/ghs/:number",
+        search: "/api/ghs/search?q=...",
+        raw: "/GHS-1-260.json",
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Failed to load GHS dataset",
+      detail: error instanceof Error ? error.message : String(error),
+      hint: "Check that /GHS-1-260.json is accessible on the deployed site.",
+    });
+  }
 }
