@@ -160,7 +160,7 @@ export async function downloadPdf(hymn: Hymn) {
     // title
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(14, 40, 65);
+    doc.setTextColor(255, 255, 255);
     doc.text(s.title, W / 2, 22, { align: "center" });
 
     // body — fit-aware
@@ -168,9 +168,9 @@ export async function downloadPdf(hymn: Hymn) {
     // pt -> mm
     const fontMm = fit.fontPt * 0.3528;
     const lineHeight = fontMm * fit.spacing;
-    doc.setFont("helvetica", "normal");
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(fit.fontPt);
-    doc.setTextColor(14, 40, 65);
+    doc.setTextColor(255, 255, 255);
 
     const bodyTop = 32;
     const bodyBottom = H - 10;
